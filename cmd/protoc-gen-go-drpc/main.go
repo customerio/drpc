@@ -26,7 +26,7 @@ func main() {
 	var conf config
 	flags.StringVar(&conf.protolib, "protolib", "google.golang.org/protobuf", "which protobuf library to use for encoding")
 	flags.BoolVar(&conf.json, "json", true, "generate encoders with json support")
-	flags.BoolVar(&conf.syncpool, "syncpool", true, "enable sync pool optimization for response objects") // NEW
+	flags.BoolVar(&conf.syncpool, "syncpool", false, "enable sync pool optimization for response objects") // NEW
 
 	protogen.Options{
 		ParamFunc: flags.Set,
@@ -345,7 +345,7 @@ func (d *drpc) generateSyncPools(service *protogen.Service) {
 	for responseType := range responseTypes {
 		poolName := d.PoolName(responseType)
 		publicPoolName := strings.TrimPrefix(responseType, "*") + "Pool"
-		
+
 		// Private pool for internal use
 		d.P("var ", poolName, " = ", d.Ident("sync", "Pool"), "{")
 		d.P("New: func() interface{} {")
@@ -353,7 +353,7 @@ func (d *drpc) generateSyncPools(service *protogen.Service) {
 		d.P("},")
 		d.P("}")
 		d.P()
-		
+
 		// Public pool for manual management
 		d.P("// ", publicPoolName, " provides manual access to the sync pool for ", responseType)
 		d.P("var ", publicPoolName, " = &", poolName)
